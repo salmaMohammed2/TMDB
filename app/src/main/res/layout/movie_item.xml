@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+    <TextView
+        android:id="@+id/movie_card"
+        android:layout_width="match_parent"
+        android:layout_height="110sp"
+        android:layout_marginHorizontal="20dp"
+        android:background="@drawable/custom_item"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/bookmark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/card_color"
+        android:src="@drawable/ic_bookmark_24"
+        app:layout_constraintEnd_toEndOf="@id/movie_card"
+        app:layout_constraintTop_toTopOf="@id/movie_card"
+        app:tint="@color/white" />
+
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/poster"
+        android:layout_width="100sp"
+        android:layout_height="140sp"
+        android:layout_marginStart="10sp"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="@id/movie_card"
+        app:layout_constraintStart_toStartOf="@id/movie_card"
+        app:shapeAppearanceOverlay="@style/roundRectangular" />
+
+    <TextView
+        android:id="@+id/movie_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8sp"
+        android:layout_marginTop="5sp"
+        android:textColor="@color/titles_color"
+        android:textSize="16sp"
+        app:flow_horizontalAlign="start"
+        app:layout_constraintEnd_toStartOf="@+id/bookmark"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@id/poster"
+        app:layout_constraintTop_toTopOf="@id/movie_card" />
+
+    <TextView
+        android:id="@+id/rate_star"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8sp"
+        android:layout_marginTop="4sp"
+        android:drawableStart="@drawable/ic_star_rate_24"
+        android:drawablePadding="4dp"
+        android:gravity="center"
+        android:textAlignment="gravity"
+        android:textColor="@color/yellow"
+        android:textSize="12sp"
+        app:layout_constraintStart_toEndOf="@id/poster"
+        app:layout_constraintTop_toBottomOf="@id/movie_title" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

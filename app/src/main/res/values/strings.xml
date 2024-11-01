@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">TMDB</string>
+    <string name="empty_text">Sorry, It Seems that is no data exist in this category</string>
+    <string name="no_internet">Network connection is unstable. \nPlease check your connection.</string>
+    <string name="movies">MOVIES</string>
+    <string name="search">Search...</string>
+    <string name="now_playing">Now Playing</string>
+    <string name="top_rated">Top Rated</string>
+    <string name="popular">Popular</string>
+    <string name="my_favorites">My Favorites</string>
+    <string name="error_message">Something Went Wrong</string>
+</resources>
