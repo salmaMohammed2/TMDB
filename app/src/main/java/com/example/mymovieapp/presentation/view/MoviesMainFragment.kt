@@ -43,7 +43,6 @@ class MoviesMainFragment : Fragment(R.layout.fragment_movies_main) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        checkNetworkAndShowBanner()
         binding.searchBar.setIconifiedByDefault(false)
         binding.searchBar.setOnQueryTextFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
@@ -130,6 +129,7 @@ class MoviesMainFragment : Fragment(R.layout.fragment_movies_main) {
     }
 
     private fun setupAdapter(flow: StateFlow<CommonViewState<List<Movie>>>) {
+        checkNetworkAndShowBanner()
         flow.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).onEach { state ->
             val movies = state.data ?: emptyList()
             when {
@@ -191,6 +191,7 @@ class MoviesMainFragment : Fragment(R.layout.fragment_movies_main) {
             binding.loadingIndicator.visibility = View.GONE
             binding.moviesRv.visibility = View.GONE
         } else {
+            binding.banner.message.text = getString(R.string.empty_text)
             binding.emptyBanner.visibility = View.GONE
             binding.moviesRv.visibility = View.VISIBLE
         }
