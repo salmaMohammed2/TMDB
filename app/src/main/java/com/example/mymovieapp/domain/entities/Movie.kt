@@ -10,34 +10,34 @@ import kotlinx.parcelize.Parcelize
 @Entity(tableName = "movies_table")
 data class Movie(
     @ColumnInfo(name = "adult")
-    val adult: Boolean?,
+    val adult: Boolean?=null,
     @ColumnInfo(name = "backdrop_path")
-    val backdrop_path: String?,
+    val backdrop_path: String? = null,
     @ColumnInfo(name = "genre_ids")
     val genre_ids: List<Int>,
     @PrimaryKey
     @ColumnInfo(name = "id")
     val id: Int,
     @ColumnInfo(name = "original_language")
-    val original_language: String?,
+    val original_language: String? = null,
     @ColumnInfo(name = "original_title")
-    val original_title: String?,
+    val original_title: String? = null,
     @ColumnInfo(name = "overview")
-    val overview: String?,
+    val overview: String? = null,
     @ColumnInfo(name = "popularity")
-    val popularity: Double?,
+    val popularity: Double? = null,
     @ColumnInfo(name = "poster_path")
-    val poster_path: String?,
+    val poster_path: String? = null,
     @ColumnInfo(name = "release_date")
-    val release_date: String?,
+    val release_date: String? = null,
     @ColumnInfo(name = "title")
-    val title: String?,
+    val title: String? = null,
     @ColumnInfo(name = "video")
-    val video: Boolean?,
+    val video: Boolean? = null,
     @ColumnInfo(name = "vote_average")
-    val vote_average: Double?,
+    val vote_average: Double? = null,
     @ColumnInfo(name = "vote_count")
-    val vote_count: Int?,
+    val vote_count: Int? = null,
     var isFavorite: Boolean = false
 ) : Parcelable
 

@@ -17,8 +17,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.example.mymovieapp.CustomTestRunner"
     }
 
     viewBinding{
@@ -34,10 +33,21 @@ android {
             )
         }
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+    }
+
+    kapt {
+        correctErrorTypes = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = "1.8"
     }
@@ -93,6 +103,27 @@ dependencies {
 
     //Gson
     implementation ("com.google.code.gson:gson:2.8.8")
+
+    //JUnit
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("io.mockk:mockk:1.13.5")
+    testImplementation("androidx.arch.core:core-testing:2.1.0") // For LiveData testing
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+
+    //Espresso
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
+    androidTestImplementation("androidx.navigation:navigation-testing:2.7.4")
+    androidTestImplementation("androidx.test.espresso:espresso-contrib:3.5.1") // For RecyclerView actions
+
+    //Hilt Android Test
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.48")
+    kaptAndroidTest("com.google.dagger:hilt-compiler:2.48")
+
+
+
 
 
 }

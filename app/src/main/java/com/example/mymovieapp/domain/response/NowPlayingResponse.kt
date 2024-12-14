@@ -4,7 +4,7 @@ import com.example.mymovieapp.domain.entities.Movie
 import com.example.mymovieapp.domain.model.Dates
 
 data class NowPlayingResponse(
-    val dates: Dates,
+    val dates: Dates? = null,
     val page: Int,
     val results: List<Movie>,
     val totalPages: Int,
