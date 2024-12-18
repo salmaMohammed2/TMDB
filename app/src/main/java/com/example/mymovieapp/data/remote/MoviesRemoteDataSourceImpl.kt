@@ -10,21 +10,21 @@ import retrofit2.Response
 import javax.inject.Inject
 
 class MoviesRemoteDataSourceImpl @Inject constructor() : MoviesRemoteDataSource {
-    override suspend fun getTopRatedMovies(): Response<MoviesResponse> {
+    override suspend fun getTopRatedMovies(pageNumber: Int): Response<MoviesResponse> {
         return withContext(Dispatchers.IO) {
-            RetrofitInstance.apiService.getTopRatedMovies()
+            RetrofitInstance.apiService.getTopRatedMovies(pageNumber)
         }
     }
 
-    override suspend fun getPopularMovies(): Response<NowPlayingResponse> {
+    override suspend fun getPopularMovies(pageNumber: Int): Response<NowPlayingResponse> {
         return withContext(Dispatchers.IO) {
-            RetrofitInstance.apiService.getPopularMovies()
+            RetrofitInstance.apiService.getPopularMovies(pageNumber)
         }
     }
 
-    override suspend fun getNowPlayingMovies(): Response<NowPlayingResponse> {
+    override suspend fun getNowPlayingMovies(pageNumber: Int): Response<NowPlayingResponse> {
         return withContext(Dispatchers.IO) {
-            RetrofitInstance.apiService.getNowPlayingMovies()
+            RetrofitInstance.apiService.getNowPlayingMovies(pageNumber)
         }
     }
 

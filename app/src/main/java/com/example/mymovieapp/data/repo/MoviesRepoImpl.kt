@@ -6,11 +6,14 @@ import javax.inject.Inject
 
 class MoviesRepoImpl @Inject constructor(private val moviesRemoteDataSource: MoviesRemoteDataSource) :
     MoviesRepo {
-    override suspend fun getTopRatedMovies() = moviesRemoteDataSource.getTopRatedMovies()
+    override suspend fun getTopRatedMovies(pageNumber: Int) =
+        moviesRemoteDataSource.getTopRatedMovies(pageNumber)
 
-    override suspend fun getPopularMovies() = moviesRemoteDataSource.getPopularMovies()
+    override suspend fun getPopularMovies(pageNumber: Int) =
+        moviesRemoteDataSource.getPopularMovies(pageNumber)
 
-    override suspend fun getNowPlayingMovies() = moviesRemoteDataSource.getNowPlayingMovies()
+    override suspend fun getNowPlayingMovies(pageNumber: Int) =
+        moviesRemoteDataSource.getNowPlayingMovies(pageNumber)
 
     override suspend fun getMovie(movieName: String) = moviesRemoteDataSource.getMovie(movieName)
 

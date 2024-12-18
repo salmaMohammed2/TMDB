@@ -7,6 +7,6 @@ data class NowPlayingResponse(
     val dates: Dates? = null,
     val page: Int,
     val results: List<Movie>,
-    val totalPages: Int,
-    val totalResults: Int
+    val total_pages: Int,
+    val total_results: Int
 )

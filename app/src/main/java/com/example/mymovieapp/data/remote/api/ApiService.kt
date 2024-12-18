@@ -14,16 +14,16 @@ import retrofit2.http.Query
 
 interface ApiService {
     @GET(TOP_RATED_MOVIES)
-    suspend fun getTopRatedMovies(): Response<MoviesResponse>
+    suspend fun getTopRatedMovies(@Query("page") pageNumber: Int): Response<MoviesResponse>
 
     @GET(POPULAR_MOVIES)
-    suspend fun getPopularMovies(): Response<NowPlayingResponse>
+    suspend fun getPopularMovies(@Query("page") pageNumber: Int): Response<NowPlayingResponse>
 
     @GET(NOW_PLAYING_MOVIES)
-    suspend fun getNowPlayingMovies(): Response<NowPlayingResponse>
+    suspend fun getNowPlayingMovies(@Query("page") pageNumber: Int): Response<NowPlayingResponse>
 
     @GET(SEARCH_MOVIE)
-    suspend fun getMovie( @Query("query")movieName: String): Response<MoviesResponse>
+    suspend fun getMovie(@Query("query") movieName: String): Response<MoviesResponse>
 
     @GET(GENRE_MOVIES)
     suspend fun getMovieGenre(): Response<GenresResponse>

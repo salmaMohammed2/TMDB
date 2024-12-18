@@ -5,7 +5,6 @@ import com.example.mymovieapp.domain.response.NowPlayingResponse
 import com.example.mymovieapp.domain.usecase.AddMovieToDatabaseUseCase
 import com.example.mymovieapp.domain.usecase.DeleteAMovieFromDatabaseUseCase
 import com.example.mymovieapp.domain.usecase.GetAllMoviesFromDatabaseUseCase
-import com.example.mymovieapp.domain.usecase.GetMovieGenreUseCase
 import com.example.mymovieapp.domain.usecase.GetNowPlayingMoviesUseCase
 import com.example.mymovieapp.domain.usecase.GetPopularMoviesUseCase
 import com.example.mymovieapp.domain.usecase.GetTopRatedMoviesUseCase
@@ -29,7 +28,6 @@ class MoviesViewModelTest {
     private lateinit var getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase
     private lateinit var getPopularMoviesUseCase: GetPopularMoviesUseCase
     private lateinit var searchOnAMovieUseCase: SearchOnAMovieUseCase
-    private lateinit var getMovieGenreUseCase: GetMovieGenreUseCase
     private lateinit var addMovieToDatabaseUseCase: AddMovieToDatabaseUseCase
     private lateinit var getAllMoviesFromDatabaseUseCase: GetAllMoviesFromDatabaseUseCase
     private lateinit var deleteAMovieFromDatabaseUseCase: DeleteAMovieFromDatabaseUseCase
@@ -42,7 +40,6 @@ class MoviesViewModelTest {
         getTopRatedMoviesUseCase = mockk()
         getPopularMoviesUseCase = mockk()
         searchOnAMovieUseCase = mockk()
-        getMovieGenreUseCase = mockk()
         addMovieToDatabaseUseCase = mockk()
         getAllMoviesFromDatabaseUseCase = mockk()
         deleteAMovieFromDatabaseUseCase = mockk()
@@ -51,7 +48,6 @@ class MoviesViewModelTest {
             getTopRatedMoviesUseCase,
             getPopularMoviesUseCase,
             searchOnAMovieUseCase,
-            getMovieGenreUseCase,
             addMovieToDatabaseUseCase,
             getAllMoviesFromDatabaseUseCase,
             deleteAMovieFromDatabaseUseCase
@@ -76,12 +72,12 @@ class MoviesViewModelTest {
             NowPlayingResponse(
                 page = 1,
                 results = mockResults,
-                totalPages = 1,
-                totalResults = 1
+                total_pages = 1,
+                total_results = 1
             )
         )
 
-        coEvery { getNowPlayingMoviesUseCase.execute() } returns mockApiResponse
+        coEvery { getNowPlayingMoviesUseCase.execute(1) } returns mockApiResponse
 
         moviesViewModel.getNowPlayingMovies()
 

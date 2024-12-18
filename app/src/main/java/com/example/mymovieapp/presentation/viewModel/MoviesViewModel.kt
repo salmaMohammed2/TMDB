@@ -3,11 +3,9 @@ package com.example.mymovieapp.presentation.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mymovieapp.domain.entities.Movie
-import com.example.mymovieapp.domain.response.GenresResponse
 import com.example.mymovieapp.domain.usecase.AddMovieToDatabaseUseCase
 import com.example.mymovieapp.domain.usecase.DeleteAMovieFromDatabaseUseCase
 import com.example.mymovieapp.domain.usecase.GetAllMoviesFromDatabaseUseCase
-import com.example.mymovieapp.domain.usecase.GetMovieGenreUseCase
 import com.example.mymovieapp.domain.usecase.GetNowPlayingMoviesUseCase
 import com.example.mymovieapp.domain.usecase.GetPopularMoviesUseCase
 import com.example.mymovieapp.domain.usecase.GetTopRatedMoviesUseCase
@@ -25,7 +23,6 @@ class MoviesViewModel @Inject constructor(
     private val getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase,
     private val getPopularMoviesUseCase: GetPopularMoviesUseCase,
     private val searchOnAMovieUseCase: SearchOnAMovieUseCase,
-    private val getMovieGenreUseCase: GetMovieGenreUseCase,
     private val addMovieToDatabaseUseCase: AddMovieToDatabaseUseCase,
     private val getAllMoviesFromDatabaseUseCase: GetAllMoviesFromDatabaseUseCase,
     private val deleteAMovieFromDatabaseUseCase: DeleteAMovieFromDatabaseUseCase
@@ -56,12 +53,6 @@ class MoviesViewModel @Inject constructor(
     val searchOnAMovieStateFlow: StateFlow<CommonViewState<List<Movie>>> =
         _searchOnAMovieStateFlow
 
-    private val _getMovieGenreStateFlow = MutableStateFlow<CommonViewState<GenresResponse>>(
-        CommonViewState(isIdle = true)
-    )
-    val getMovieGenreStateFlow: StateFlow<CommonViewState<GenresResponse>> =
-        _getMovieGenreStateFlow
-
     private val _getAllMoviesFromDatabaseStateFlow = MutableStateFlow<CommonViewState<List<Movie>>>(
         CommonViewState(isIdle = true)
     )
@@ -69,6 +60,8 @@ class MoviesViewModel @Inject constructor(
         _getAllMoviesFromDatabaseStateFlow
 
     val tabPosition = MutableStateFlow(0)
+    val pageNumber = 1
+    var currentPage = 1
 
     init {
         getNowPlayingMovies()
@@ -90,13 +83,16 @@ class MoviesViewModel @Inject constructor(
                 _getNowPlayingMoviesStateFlow.emit(
                     CommonViewState(isLoading = true)
                 )
-                val response = getNowPlayingMoviesUseCase.execute()
-                _getNowPlayingMoviesStateFlow.emit(
-                    CommonViewState(
-                        isSuccess = true,
-                        data = response.body()?.results
+                val response = getNowPlayingMoviesUseCase.execute(currentPage)
+                if ((response.body()?.total_pages ?: 0) >= currentPage) {
+                    _getNowPlayingMoviesStateFlow.emit(
+                        CommonViewState(
+                            isSuccess = true,
+                            data = response.body()?.results
+                        )
                     )
-                )
+                    loadNextPage()
+                }
 
             } catch (t: Throwable) {
                 _getNowPlayingMoviesStateFlow.emit(
@@ -114,7 +110,7 @@ class MoviesViewModel @Inject constructor(
                 _getTopRatedMoviesStateFlow.emit(
                     CommonViewState(isLoading = true)
                 )
-                val response = getTopRatedMoviesUseCase.execute()
+                val response = getTopRatedMoviesUseCase.execute(currentPage)
                 _getTopRatedMoviesStateFlow.emit(
                     CommonViewState(
                         isSuccess = true,
@@ -138,7 +134,7 @@ class MoviesViewModel @Inject constructor(
                 _getPopularMoviesStateFlow.emit(
                     CommonViewState(isLoading = true)
                 )
-                val response = getPopularMoviesUseCase.execute()
+                val response = getPopularMoviesUseCase.execute(currentPage)
                 _getPopularMoviesStateFlow.emit(
                     CommonViewState(
                         isSuccess = true,
@@ -172,30 +168,6 @@ class MoviesViewModel @Inject constructor(
 
             } catch (t: Throwable) {
                 _searchOnAMovieStateFlow.emit(
-                    CommonViewState(
-                        error = t
-                    )
-                )
-            }
-        }
-    }
-
-    private fun getMovieGenre() {
-        viewModelScope.launch {
-            try {
-                _getMovieGenreStateFlow.emit(
-                    CommonViewState(isLoading = true)
-                )
-                val response = getMovieGenreUseCase.execute()
-                _getMovieGenreStateFlow.emit(
-                    CommonViewState(
-                        isSuccess = true,
-                        data = response.body()
-                    )
-                )
-
-            } catch (t: Throwable) {
-                _getMovieGenreStateFlow.emit(
                     CommonViewState(
                         error = t
                     )
@@ -267,6 +239,10 @@ class MoviesViewModel @Inject constructor(
             3 -> getAllMoviesFromDatabaseStateFlow
             else -> getNowPlayingMoviesStateFlow
         }
+    }
+
+    fun loadNextPage() {
+        currentPage = currentPage++
     }
 
 
