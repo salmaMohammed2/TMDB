@@ -1,5 +1,6 @@
 package com.example.mymovieapp.presentation.adapter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PorterDuff
 import android.view.LayoutInflater
@@ -113,6 +114,7 @@ class MoviesAdapter(
         notifyItemRangeInserted(currentSize, newMovies.size)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun resetMovies(newMovies: List<Movie>) {
         movieList.clear()
         movieList.addAll(newMovies)
