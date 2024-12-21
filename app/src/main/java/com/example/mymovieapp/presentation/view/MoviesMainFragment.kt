@@ -12,9 +12,11 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.mymovieapp.R
 import com.example.mymovieapp.databinding.FragmentMoviesMainBinding
 import com.example.mymovieapp.domain.entities.Movie
+import com.example.mymovieapp.domain.enum.MovieType
 import com.example.mymovieapp.isNetworkStable
 import com.example.mymovieapp.presentation.adapter.MoviesAdapter
 import com.example.mymovieapp.presentation.viewModel.MoviesViewModel
@@ -50,35 +52,13 @@ class MoviesMainFragment : Fragment(R.layout.fragment_movies_main) {
             }
         }
         binding.searchBar.queryHint = getString(R.string.search)
+        initAdapter()
         setupAdapter(viewModel.getNowPlayingMoviesStateFlow)
-
+        setupPaginationListener()
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
-                when (tab.position) {
-                    0 -> {
-                        viewModel.tabPosition.value = 0
-                        viewModel.getNowPlayingMovies()
-                        setupAdapter(viewModel.getNowPlayingMoviesStateFlow)
-                    }
-
-                    1 -> {
-                        viewModel.tabPosition.value = 1
-                        viewModel.getTopRatedMovies()
-                        setupAdapter(viewModel.getTopRatedMoviesStateFlow)
-                    }
-
-                    2 -> {
-                        viewModel.tabPosition.value = 2
-                        viewModel.getPopularMovies()
-                        setupAdapter(viewModel.getPopularMoviesStateFlow)
-                    }
-
-                    3 -> {
-                        viewModel.tabPosition.value = 3
-                        setupAdapter(viewModel.getAllMoviesFromDatabaseStateFlow)
-                    }
-                }
-                viewModel.getAllMoviesFromDatabase()
+                viewModel.resetCurrentPage()
+                getMoviesAccordingToMovieType(tab.position, resetAdapter = true)
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) {
@@ -91,22 +71,24 @@ class MoviesMainFragment : Fragment(R.layout.fragment_movies_main) {
         binding.searchBar.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 binding.tabLayout.visibility = View.GONE
-                if (query != null) {
-                    setupAdapter(viewModel.searchOnAMovieStateFlow)
-                }
-                viewModel.searchMovie(query ?: "")
+                viewModel.resetCurrentPage()
+                viewModel.searchMovieName.value = query ?: ""
+                getMoviesAccordingToMovieType(MovieType.SEARCHED.type, true, query ?: "")
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (newText.isNullOrEmpty()) {
                     binding.tabLayout.visibility = View.VISIBLE
-                    setupAdapter(viewModel.checkTabLayoutPosition(viewModel.tabPosition.value))
+                    setupAdapter(
+                        viewModel.checkTabLayoutPosition(viewModel.tabPosition.value),
+                        resetAdapter = true
+                    )
                 } else {
                     binding.tabLayout.visibility = View.GONE
                     moviesAdapter = MoviesAdapter(
                         requireContext(),
-                        emptyList(),
+                        mutableListOf(),
                         onItemClickListener = {},
                         onFavoriteClickListener = {},
                         tabLayoutPosition = viewModel.tabPosition.value
@@ -122,21 +104,102 @@ class MoviesMainFragment : Fragment(R.layout.fragment_movies_main) {
         })
 
         binding.swipeRefreshLayout.setOnRefreshListener {
+            viewModel.resetCurrentPage()
             viewModel.fetchData()
-            setupAdapter(viewModel.checkTabLayoutPosition(viewModel.tabPosition.value))
+            setupAdapter(
+                viewModel.checkTabLayoutPosition(viewModel.tabPosition.value),
+                resetAdapter = true
+            )
             binding.swipeRefreshLayout.isRefreshing = false
         }
     }
 
-    private fun setupAdapter(flow: StateFlow<CommonViewState<List<Movie>>>) {
+    private fun getMoviesAccordingToMovieType(
+        type: Int,
+        resetAdapter: Boolean,
+        searchMovie: String = viewModel.searchMovieName.value
+    ) {
+        when (type) {
+            MovieType.NOW_PLAYING.type -> {
+                viewModel.tabPosition.value = MovieType.NOW_PLAYING.type
+                viewModel.getNowPlayingMovies()
+                setupAdapter(viewModel.getNowPlayingMoviesStateFlow, resetAdapter)
+            }
+
+            MovieType.TOP_RATED.type -> {
+                viewModel.tabPosition.value = MovieType.TOP_RATED.type
+                viewModel.getTopRatedMovies()
+                setupAdapter(viewModel.getTopRatedMoviesStateFlow, resetAdapter)
+            }
+
+            MovieType.POPULAR.type -> {
+                viewModel.tabPosition.value = MovieType.POPULAR.type
+                viewModel.getPopularMovies()
+                setupAdapter(viewModel.getPopularMoviesStateFlow, resetAdapter)
+            }
+
+            MovieType.FAVORITES.type -> {
+                viewModel.tabPosition.value = MovieType.FAVORITES.type
+                setupAdapter(viewModel.getAllMoviesFromDatabaseStateFlow, resetAdapter = true)
+            }
+
+            MovieType.SEARCHED.type -> {
+                viewModel.tabPosition.value = MovieType.SEARCHED.type
+                viewModel.searchMovie(searchMovie)
+                setupAdapter(viewModel.searchOnAMovieStateFlow, resetAdapter = resetAdapter)
+            }
+        }
+        viewModel.getAllMoviesFromDatabase()
+    }
+
+    private fun initAdapter() {
+        moviesAdapter = MoviesAdapter(
+            requireContext(),
+            mutableListOf(),
+            onItemClickListener = { movie ->
+                findNavController().navigate(
+                    MoviesMainFragmentDirections.actionMoviesMainFragmentToMovieDetailsFragment(
+                        movie
+                    )
+                )
+            },
+            onFavoriteClickListener = { movie ->
+                if (viewModel.tabPosition.value != MovieType.FAVORITES.type) {
+                    if (movie.isFavorite) {
+                        viewModel.addAMovieToMyFavorite(movie)
+                    } else {
+                        viewModel.deleteAMovieFromMyFavorite(movie.id)
+                    }
+                } else {
+                    viewModel.deleteAMovieFromMyFavorite(movie.id)
+                    viewModel.getAllMoviesFromDatabase()
+                }
+            },
+            tabLayoutPosition = viewModel.tabPosition.value
+        )
+        binding.moviesRv.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = moviesAdapter
+        }
+    }
+
+    private fun setupAdapter(
+        flow: StateFlow<CommonViewState<List<Movie>>>,
+        resetAdapter: Boolean = false
+    ) {
         checkNetworkAndShowBanner()
         flow.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED).onEach { state ->
             val movies = state.data ?: emptyList()
             when {
                 state.isLoading -> {
-                    binding.loadingIndicator.visibility = View.VISIBLE
-                    binding.moviesRv.visibility = View.GONE
-                    binding.emptyBanner.visibility = View.GONE
+                    if (moviesAdapter.isLoading) {
+                        showRecyclerView()
+                    } else {
+                        binding.loadingIndicator.visibility = View.VISIBLE
+                        binding.moviesRv.visibility = View.GONE
+                        binding.emptyBanner.visibility = View.GONE
+                    }
+
                 }
 
                 movies.isEmpty() -> {
@@ -146,43 +209,54 @@ class MoviesMainFragment : Fragment(R.layout.fragment_movies_main) {
                 }
 
                 else -> {
-                    binding.loadingIndicator.visibility = View.GONE
-                    binding.moviesRv.visibility = View.VISIBLE
-                    binding.emptyBanner.visibility = View.GONE
+                    showRecyclerView()
+                    if (resetAdapter)
+                        moviesAdapter.resetMovies(
+                            viewModel.updateMovieListWithFavorites(
+                                movies,
+                                viewModel.getAllMoviesFromDatabaseStateFlow.value.data
+                                    ?: emptyList()
+                            )
+                        )
+                    else
+                        moviesAdapter.addMovies(
+                            viewModel.updateMovieListWithFavorites(
+                                movies,
+                                viewModel.getAllMoviesFromDatabaseStateFlow.value.data
+                                    ?: emptyList()
+                            )
+                        )
+                    moviesAdapter.showLoading(false)
                 }
             }
-
-            moviesAdapter = MoviesAdapter(
-                requireContext(),
-                viewModel.updateMovieListWithFavorites(
-                    movies, viewModel.getAllMoviesFromDatabaseStateFlow.value.data ?: emptyList()
-                ),
-                onItemClickListener = { movie ->
-                    findNavController().navigate(
-                        MoviesMainFragmentDirections.actionMoviesMainFragmentToMovieDetailsFragment(
-                            movie
-                        )
-                    )
-                },
-                onFavoriteClickListener = { movie ->
-                    if (viewModel.tabPosition.value != 3) {
-                        if (movie.isFavorite) {
-                            viewModel.addAMovieToMyFavorite(movie)
-                        } else {
-                            viewModel.deleteAMovieFromMyFavorite(movie.id)
-                        }
-                    } else {
-                        viewModel.deleteAMovieFromMyFavorite(movie.id)
-                        viewModel.getAllMoviesFromDatabase()
-                    }
-                },
-                tabLayoutPosition = viewModel.tabPosition.value
-            )
-            binding.moviesRv.apply {
-                layoutManager = LinearLayoutManager(requireContext())
-                adapter = moviesAdapter
-            }
         }.launchIn(lifecycleScope)
+    }
+
+    private fun showRecyclerView() {
+        binding.loadingIndicator.visibility = View.GONE
+        binding.moviesRv.visibility = View.VISIBLE
+        binding.emptyBanner.visibility = View.GONE
+    }
+
+    private fun setupPaginationListener() {
+        binding.moviesRv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val totalItemCount = layoutManager.itemCount
+                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+
+                if (!moviesAdapter.isLoading && !viewModel.stopPagination() && totalItemCount <= (lastVisibleItemPosition + 2)) {
+                    moviesAdapter.showLoading(true)
+                    viewModel.loadNextPage()
+                    getMoviesAccordingToMovieType(
+                        viewModel.tabPosition.value,
+                        resetAdapter = false
+                    )
+                }
+            }
+        })
     }
 
     private fun checkNetworkAndShowBanner() {

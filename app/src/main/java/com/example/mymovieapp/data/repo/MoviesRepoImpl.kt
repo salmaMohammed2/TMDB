@@ -15,7 +15,8 @@ class MoviesRepoImpl @Inject constructor(private val moviesRemoteDataSource: Mov
     override suspend fun getNowPlayingMovies(pageNumber: Int) =
         moviesRemoteDataSource.getNowPlayingMovies(pageNumber)
 
-    override suspend fun getMovie(movieName: String) = moviesRemoteDataSource.getMovie(movieName)
+    override suspend fun getMovie(movieName: String, pageNumber: Int) =
+        moviesRemoteDataSource.getMovie(movieName, pageNumber)
 
     override suspend fun getMovieGenre() = moviesRemoteDataSource.getMovieGenre()
 }

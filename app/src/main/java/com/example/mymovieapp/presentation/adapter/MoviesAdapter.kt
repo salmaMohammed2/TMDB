@@ -11,37 +11,51 @@ import com.example.mymovieapp.Constants.IMAGE_PATH
 import com.example.mymovieapp.R
 import com.example.mymovieapp.databinding.MovieItemBinding
 import com.example.mymovieapp.domain.entities.Movie
+import com.example.mymovieapp.domain.enum.ViewHolderType
 
 
 class MoviesAdapter(
     private val context: Context,
-    private val movieList: List<Movie>,
+    private val movieList: MutableList<Movie>,
     val onItemClickListener: (Movie) -> Unit,
     val onFavoriteClickListener: (Movie) -> Unit,
     val tabLayoutPosition: Int
 ) :
-    RecyclerView.Adapter<MoviesAdapter.MovieItemViewHolder>() {
+    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+    var isLoading = false
 
     override fun getItemCount(): Int {
-        return movieList.size
+        return movieList.size + if (isLoading) 1 else 0
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieItemViewHolder {
-        return MovieItemViewHolder(
-            MovieItemBinding.inflate(
-                LayoutInflater.from(
-                    parent.context
-                ), parent, false
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (viewType == ViewHolderType.VIEW_TYPE_MOVIE.type) {
+            MovieItemViewHolder(
+                MovieItemBinding.inflate(
+                    LayoutInflater.from(
+                        parent.context
+                    ), parent, false
+                )
             )
-        )
+        } else {
+            LoadingViewHolder(
+                LayoutInflater.from(parent.context).inflate(R.layout.loading_item, parent, false)
+            )
+        }
     }
 
 
-    override fun onBindViewHolder(holder: MovieItemViewHolder, position: Int) {
-        holder.bind(movieList[position])
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        if (holder is MovieItemViewHolder)
+            holder.bind(movieList[position])
     }
 
-    override fun getItemViewType(position: Int) = position
+    override fun getItemViewType(position: Int): Int {
+        return if (isLoading && position == movieList.size) ViewHolderType.VIEW_TYPE_LOADING.type else ViewHolderType.VIEW_TYPE_MOVIE.type
+    }
+
+    inner class LoadingViewHolder(view: android.view.View) : RecyclerView.ViewHolder(view)
 
     inner class MovieItemViewHolder(private val binding: MovieItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -81,5 +95,27 @@ class MoviesAdapter(
                 binding.bookmark.setColorFilter(color, PorterDuff.Mode.SRC_IN)
             }
         }
+    }
+
+    fun showLoading(isLoading: Boolean) {
+        if (this.isLoading == isLoading) return
+        this.isLoading = isLoading
+        if (isLoading) {
+            notifyItemInserted(movieList.size)
+        } else {
+            notifyItemRemoved(movieList.size)
+        }
+    }
+
+    fun addMovies(newMovies: List<Movie>) {
+        val currentSize = movieList.size
+        movieList.addAll(newMovies)
+        notifyItemRangeInserted(currentSize, newMovies.size)
+    }
+
+    fun resetMovies(newMovies: List<Movie>) {
+        movieList.clear()
+        movieList.addAll(newMovies)
+        notifyDataSetChanged()
     }
 }

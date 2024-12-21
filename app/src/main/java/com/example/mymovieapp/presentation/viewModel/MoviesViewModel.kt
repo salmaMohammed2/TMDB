@@ -3,6 +3,7 @@ package com.example.mymovieapp.presentation.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mymovieapp.domain.entities.Movie
+import com.example.mymovieapp.domain.enum.MovieType
 import com.example.mymovieapp.domain.usecase.AddMovieToDatabaseUseCase
 import com.example.mymovieapp.domain.usecase.DeleteAMovieFromDatabaseUseCase
 import com.example.mymovieapp.domain.usecase.GetAllMoviesFromDatabaseUseCase
@@ -60,8 +61,9 @@ class MoviesViewModel @Inject constructor(
         _getAllMoviesFromDatabaseStateFlow
 
     val tabPosition = MutableStateFlow(0)
-    val pageNumber = 1
-    var currentPage = 1
+    val searchMovieName = MutableStateFlow("")
+    private var currentPage = 1
+    private var totalPages = 1
 
     init {
         getNowPlayingMovies()
@@ -70,10 +72,11 @@ class MoviesViewModel @Inject constructor(
 
     fun fetchData() {
         when (tabPosition.value) {
-            0 -> getNowPlayingMovies()
-            1 -> getTopRatedMovies()
-            2 -> getPopularMovies()
-            4 -> getAllMoviesFromDatabase()
+            MovieType.NOW_PLAYING.type -> getNowPlayingMovies()
+            MovieType.TOP_RATED.type -> getTopRatedMovies()
+            MovieType.POPULAR.type -> getPopularMovies()
+            MovieType.FAVORITES.type -> getAllMoviesFromDatabase()
+            MovieType.SEARCHED.type -> searchMovie(searchMovieName.value)
         }
     }
 
@@ -84,14 +87,14 @@ class MoviesViewModel @Inject constructor(
                     CommonViewState(isLoading = true)
                 )
                 val response = getNowPlayingMoviesUseCase.execute(currentPage)
-                if ((response.body()?.total_pages ?: 0) >= currentPage) {
+                totalPages = response.body()?.total_pages ?: 0
+                if (totalPages >= currentPage) {
                     _getNowPlayingMoviesStateFlow.emit(
                         CommonViewState(
                             isSuccess = true,
                             data = response.body()?.results
                         )
                     )
-                    loadNextPage()
                 }
 
             } catch (t: Throwable) {
@@ -111,12 +114,15 @@ class MoviesViewModel @Inject constructor(
                     CommonViewState(isLoading = true)
                 )
                 val response = getTopRatedMoviesUseCase.execute(currentPage)
-                _getTopRatedMoviesStateFlow.emit(
-                    CommonViewState(
-                        isSuccess = true,
-                        data = response.body()?.results
+                totalPages = response.body()?.total_pages ?: 0
+                if (totalPages >= currentPage) {
+                    _getTopRatedMoviesStateFlow.emit(
+                        CommonViewState(
+                            isSuccess = true,
+                            data = response.body()?.results
+                        )
                     )
-                )
+                }
 
             } catch (t: Throwable) {
                 _getTopRatedMoviesStateFlow.emit(
@@ -135,12 +141,15 @@ class MoviesViewModel @Inject constructor(
                     CommonViewState(isLoading = true)
                 )
                 val response = getPopularMoviesUseCase.execute(currentPage)
-                _getPopularMoviesStateFlow.emit(
-                    CommonViewState(
-                        isSuccess = true,
-                        data = response.body()?.results
+                totalPages = response.body()?.total_pages ?: 0
+                if (totalPages >= currentPage) {
+                    _getPopularMoviesStateFlow.emit(
+                        CommonViewState(
+                            isSuccess = true,
+                            data = response.body()?.results
+                        )
                     )
-                )
+                }
 
             } catch (t: Throwable) {
                 _getPopularMoviesStateFlow.emit(
@@ -158,13 +167,16 @@ class MoviesViewModel @Inject constructor(
                 _searchOnAMovieStateFlow.emit(
                     CommonViewState(isLoading = true)
                 )
-                val response = searchOnAMovieUseCase.execute(movieName)
-                _searchOnAMovieStateFlow.emit(
-                    CommonViewState(
-                        isSuccess = true,
-                        data = response.body()?.results
+                val response = searchOnAMovieUseCase.execute(movieName, currentPage)
+                totalPages = response.body()?.total_pages ?: 0
+                if (totalPages >= currentPage) {
+                    _searchOnAMovieStateFlow.emit(
+                        CommonViewState(
+                            isSuccess = true,
+                            data = response.body()?.results
+                        )
                     )
-                )
+                }
 
             } catch (t: Throwable) {
                 _searchOnAMovieStateFlow.emit(
@@ -221,28 +233,35 @@ class MoviesViewModel @Inject constructor(
     fun updateMovieListWithFavorites(
         movieList: List<Movie>,
         favoriteList: List<Movie>
-    ): List<Movie> {
-        val favoriteIds =
-            favoriteList.map { it.id }.toSet()
-        movieList.forEach { movie ->
-            movie.isFavorite =
-                favoriteIds.contains(movie.id)
-        }
-        return movieList
+    ): MutableList<Movie> {
+        val favoriteIds = favoriteList.map { it.id }.toSet()
+        val updatedMovieList = movieList.map { movie ->
+            movie.apply { isFavorite = favoriteIds.contains(movie.id) }
+        }.toMutableList()
+        return updatedMovieList
     }
 
     fun checkTabLayoutPosition(position: Int): StateFlow<CommonViewState<List<Movie>>> {
         return when (position) {
-            0 -> getNowPlayingMoviesStateFlow
-            1 -> getTopRatedMoviesStateFlow
-            2 -> getPopularMoviesStateFlow
-            3 -> getAllMoviesFromDatabaseStateFlow
+            MovieType.NOW_PLAYING.type -> getNowPlayingMoviesStateFlow
+            MovieType.TOP_RATED.type -> getTopRatedMoviesStateFlow
+            MovieType.POPULAR.type -> getPopularMoviesStateFlow
+            MovieType.FAVORITES.type -> getAllMoviesFromDatabaseStateFlow
             else -> getNowPlayingMoviesStateFlow
         }
     }
 
     fun loadNextPage() {
-        currentPage = currentPage++
+        currentPage++
+    }
+
+    fun resetCurrentPage() {
+        currentPage = 1
+        totalPages = 1
+    }
+
+    fun stopPagination(): Boolean {
+        return currentPage >= totalPages
     }
 
 

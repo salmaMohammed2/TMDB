@@ -28,9 +28,9 @@ class MoviesRemoteDataSourceImpl @Inject constructor() : MoviesRemoteDataSource 
         }
     }
 
-    override suspend fun getMovie(movieName: String): Response<MoviesResponse> {
+    override suspend fun getMovie(movieName: String,pageNumber: Int): Response<MoviesResponse> {
         return withContext(Dispatchers.IO) {
-            RetrofitInstance.apiService.getMovie(movieName)
+            RetrofitInstance.apiService.getMovie(movieName,pageNumber)
         }
     }
 
