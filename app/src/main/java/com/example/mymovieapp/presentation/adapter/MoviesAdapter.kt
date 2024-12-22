@@ -12,6 +12,7 @@ import com.example.mymovieapp.Constants.IMAGE_PATH
 import com.example.mymovieapp.R
 import com.example.mymovieapp.databinding.MovieItemBinding
 import com.example.mymovieapp.domain.entities.Movie
+import com.example.mymovieapp.domain.enum.MovieType
 import com.example.mymovieapp.domain.enum.ViewHolderType
 
 
@@ -73,8 +74,7 @@ class MoviesAdapter(
                 onItemClickListener.invoke(item)
             }
 
-            if (tabLayoutPosition == 3) {
-                binding.bookmark.setImageResource(R.drawable.ic_delete_24)
+            if (tabLayoutPosition == MovieType.FAVORITES.type) {
                 binding.bookmark.setOnClickListener {
                     onFavoriteClickListener.invoke(item)
                 }

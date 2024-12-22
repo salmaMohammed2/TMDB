@@ -71,6 +71,7 @@ class MoviesMainFragment : Fragment(R.layout.fragment_movies_main) {
         binding.searchBar.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 binding.tabLayout.visibility = View.GONE
+                binding.moviesRv.visibility = View.VISIBLE
                 viewModel.resetCurrentPage()
                 viewModel.searchMovieName.value = query ?: ""
                 getMoviesAccordingToMovieType(MovieType.SEARCHED.type, true, query ?: "")
@@ -80,19 +81,14 @@ class MoviesMainFragment : Fragment(R.layout.fragment_movies_main) {
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (newText.isNullOrEmpty()) {
                     binding.tabLayout.visibility = View.VISIBLE
+                    binding.moviesRv.visibility = View.VISIBLE
                     setupAdapter(
                         viewModel.checkTabLayoutPosition(viewModel.tabPosition.value),
                         resetAdapter = true
                     )
                 } else {
                     binding.tabLayout.visibility = View.GONE
-                    moviesAdapter = MoviesAdapter(
-                        requireContext(),
-                        mutableListOf(),
-                        onItemClickListener = {},
-                        onFavoriteClickListener = {},
-                        tabLayoutPosition = viewModel.tabPosition.value
-                    )
+                    binding.moviesRv.visibility = View.GONE
                     binding.moviesRv.apply {
                         layoutManager = LinearLayoutManager(requireContext())
                         adapter = moviesAdapter
